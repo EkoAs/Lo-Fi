@@ -3,26 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lo-Fi</title>
+    <title>Lo-Fi Pixel Weather Tree</title>
     
-    <!-- Menghubungkan File CSS -->
-    <link rel="stylesheet" href="CSS/view.css">
-    <link rel="stylesheet" href="CSS/effect.css">
-    <link rel="stylesheet" href="CSS/responsive.css">
+    <!-- CSS Modular Structure -->
+    <link rel="stylesheet" href="DATA/CSS/view.css">
+    <link rel="stylesheet" href="DATA/CSS/effect.css">
+    <link rel="stylesheet" href="DATA/CSS/responsive.css">
 </head>
 <body>
 
-   <!-- main display -->
-    <div id="app">
-        <!-- UI untuk status mode layar nyala -->
-        <div id="status-box">
-            <h2 id="status-text">Menunggu izin menyalakan layar...</h2>
-            <button id="start-btn">Aktifkan Mode Lo-Fi</button>
-        </div>
+    <!-- Panel Informasi Cuaca Real-Time -->
+    <div class="weather-panel">
+        <h3>📍 Purwakarta, Jawa Barat</h3>
+        <p>Kecepatan Angin: <span id="wind-speed" class="data-highlight">Mengambil data...</span></p>
+        <p>Status: <span id="wind-status" class="data-highlight">...</span></p>
     </div>
 
-    <!-- Menghubungkan File JavaScript (Taruh di bawah sebelum tutup body) -->
-    <script src="JS/effect.js"></script>
-    <script src="JS/main.js"></script>
+    <!-- Kontainer Pohon & Tanah -->
+    <div id="tree-container"></div>
+    <div class="ground"></div>
+
+    <!-- Panel Kontrol Layar Nyala (Screen Wake Lock) -->
+    <div id="status-box">
+        <span id="status-text">Layar: Siap</span>
+        <button id="start-btn">Aktifkan Layar Nyala</button>
+    </div>
+
+    <!-- JS Modular Structure -->
+    <script src="DATA/JS/effect.js"></script>
+    <script src="DATA/JS/main.js"></script>
 </body>
 </html>

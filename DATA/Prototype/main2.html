@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Weather Pixel Tree</title>
+    <style>
+        /* =========================================
+           BAGIAN 1: STYLING DASAR & UI
+           ========================================= */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #87ceeb; /* Langit (nanti bisa diubah warnanya dari JS) */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 2s ease;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15vh;
+            background-color: #3b7a57;
+            z-index: 10;
+        }
+
+        #tree-container {
+            position: relative;
+            bottom: 15vh;
+            width: 0; 
+            height: 0;
+            z-index: 5;
+        }
+
+        /* 
+           Setiap dahan sekarang memiliki z-index agar 
+           tumpukan antara kayu dan daun lebih terlihat 
+        */
+        .branch-group {
+            position: absolute;
+            transform-origin: bottom center;
+            z-index: 6; 
+        }
+
+        .pixel {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+        }
+
+        .leaf {
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+            z-index: 8;
+        }
+
+        /* Class baru untuk kayu dahan agar sedikit terlihat di sela daun */
+        .wood {
+            z-index: 7;
+            box-shadow: inset -1px -1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Panel Info Cuaca Real-Time */
+        .weather-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 20;
+            backdrop-filter: blur(5px);
+        }
+
+        .weather-panel h3 { margin: 0 0 5px 0; font-size: 16px; color: #333; }
+        .weather-panel p { margin: 0; font-size: 14px; color: #555; }
+        .data-highlight { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <!-- UI Cuaca -->
+    <div class="weather-panel">
+        <h3>📍 Purwakarta, Jawa Barat</h3>
+        <p>Kecepatan Angin: <span id="wind-speed" class="data-highlight">Mengambil data...</span></p>
+        <p>Status: <span id="wind-status" class="data-highlight">...</span></p>
+    </div>
+
+    <!-- Kanvas Pohon -->
+    <div id="tree-container"></div>
+    <div class="ground"></div>
+
+    <script>
+        // =========================================
+        // BAGIAN 1 JS: SETUP & FETCH API CUACA
+        // =========================================
+        const container = document.getElementById('tree-container');
+        const windSpeedEl = document.getElementById('wind-speed');
+        const windStatusEl = document.getElementById('wind-status');
+
+        // Variabel global untuk menyimpan data cuaca
+        let currentWindSpeed = 2; // Default 2 km/h jika API gagal
+        let baseWindForce = 0;    // Akan digunakan di rumus fisika (Bagian 3)
+
+        // Menggunakan Open-Meteo API (Gratis, tanpa key)
+        // Koordinat diset ke area Purwakarta (-6.55, 107.44)
+        const weatherApiUrl = "https://api.open-meteo.com/v1/forecast?latitude=-6.55&longitude=107.44&current_weather=true";
+
+        async function fetchWeather() {
+            try {
+                const response = await fetch(weatherApiUrl);
+                const data = await response.json();
+                
+                // Mendapatkan kecepatan angin (km/h)
+                currentWindSpeed = data.current_weather.windspeed;
+                
+                // Update UI
+                windSpeedEl.innerText = `${currentWindSpeed} km/h`;
+                
+                // Menentukan deskripsi berdasarkan kecepatan angin
+                if(currentWindSpeed < 5) windStatusEl.innerText = "Angin Sepoi-sepoi 🍃";
+                else if(currentWindSpeed < 15) windStatusEl.innerText = "Angin Sedang 💨";
+                else if(currentWindSpeed < 30) windStatusEl.innerText = "Angin Kencang 🌪️";
+                else windStatusEl.innerText = "Badai! ⚠️";
+
+                // Menghitung kekuatan angin dasar untuk mesin fisika nanti
+                // Konversi ringan agar angkanya cocok dengan perhitungan rotasi daun
+                baseWindForce = currentWindSpeed * 0.05; 
+
+            } catch (error) {
+                console.error("Gagal mengambil data cuaca:", error);
+                windSpeedEl.innerText = "Gagal (pakai data lokal)";
+                windStatusEl.innerText = "Mode Offline";
+                baseWindForce = 2.5; // Fallback
+            }
+        }
+
+        // Panggil API saat web pertama dibuka
+        fetchWeather();
+        // Update cuaca setiap 15 menit
+        setInterval(fetchWeather, 15 * 60 * 1000);
+        // =========================================
+        // BAGIAN 2: MERAKIT POHON (BATANG & DAHAN)
+        // =========================================
+        
+        const pixelSize = 10;
+        const step = 6; 
+        
+        // Palet Warna
+        const trunkColors = ['#3e2723', '#4e342e', '#5d4037'];
+        const leafColors = ['#1b4332', '#2d6a4f', '#40916c', '#52b788'];
+
+        // Fungsi menggambar 1 pixel (kotak)
+        function createPixel(parentEl, x, y, colors, type) {
+            const el = document.createElement('div');
+            el.classList.add('pixel');
+            
+            // Tambahkan class sesuai jenisnya agar CSS (z-index & shadow) di Bagian 1 bekerja
+            if (type === 'leaf') el.classList.add('leaf');
+            else if (type === 'wood') el.classList.add('wood');
+            
+            el.style.left = x + 'px';
+            el.style.bottom = y + 'px';
+            el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            parentEl.appendChild(el);
+        }
+
+        // 1. MEMBUAT BATANG UTAMA (STATIS / DIAM)
+        // Kita buat batangnya sedikit lebih tinggi
+        for (let y = 0; y <= 170; y += step) {
+            for (let x = -15; x <= 15; x += step) {
+                // Buat pinggiran batang agak berantakan gaya pixel art
+                if (Math.abs(x) >= 10 && Math.random() > 0.6) continue;
+                createPixel(container, x, y, trunkColors, 'wood');
+            }
+        }
+
+        // 2. MENDATA KOORDINAT DAHAN
+        // cx/cy = pusat rimbunan daun. px/py = titik engsel dahan menempel di batang utama
+        const branchesData = [
+            { cx: 0,   cy: 240, r: 90, px: 0,   py: 160 }, // Rimbunan Pucuk Tengah
+            { cx: -65, cy: 190, r: 85, px: -10, py: 130 }, // Dahan Kiri Bawah
+            { cx: 65,  cy: 190, r: 85, px: 10,  py: 130 }, // Dahan Kanan Bawah
+            { cx: -50, cy: 270, r: 70, px: -5,  py: 160 }, // Dahan Kiri Atas
+            { cx: 50,  cy: 270, r: 70, px: 5,   py: 160 }  // Dahan Kanan Atas
+        ];
+
+        // Array untuk menyimpan status fisika masing-masing dahan
+        const branches = [];
+
+        branchesData.forEach(b => {
+            // Buat kontainer untuk 1 dahan utuh
+            const branchEl = document.createElement('div');
+            branchEl.className = 'branch-group';
+            
+            // Set titik engsel dahan (pivot)
+            branchEl.style.left = b.px + 'px';
+            branchEl.style.bottom = b.py + 'px';
+            container.appendChild(branchEl);
+
+            // Koordinat pusat daun relatif terhadap titik engsel
+            const localCx = b.cx - b.px;
+            const localCy = b.cy - b.py;
+
+            // --- A. MENGGAMBAR KAYU DAHAN ---
+            // Membuat garis kayu dari engsel (0,0) menuju ke pusat rimbunan daun (localCx, localCy)
+            const segments = 15; 
+            for(let i = 0; i <= segments; i++) {
+                let wx = (localCx / segments) * i;
+                let wy = (localCy / segments) * i;
+                
+                // Bikin kayunya tebal 2-3 pixel agar terlihat jelas
+                for(let w_off = -step; w_off <= step; w_off += step) {
+                    if(Math.random() > 0.3) {
+                        createPixel(branchEl, wx + w_off, wy, trunkColors, 'wood');
+                    }
+                }
+            }
+
+            // --- B. MENGGAMBAR DEDAUNAN ---
+            for (let y = localCy - b.r; y <= localCy + b.r; y += step) {
+                for (let x = localCx - b.r; x <= localCx + b.r; x += step) {
+                    // Cek apakah koordinat berada di dalam lingkaran radius
+                    const distSq = Math.pow(x - localCx, 2) + Math.pow(y - localCy, 2);
+                    if (distSq <= b.r * b.r) {
+                        // Bolong-bolong acak agar kayu di belakangnya mengintip
+                        if (Math.random() > 0.25) {
+                            createPixel(branchEl, x, y, leafColors, 'leaf');
+                        }
+                    }
+                }
+            }
+
+            // --- C. MENYIMPAN VARIABEL FISIKA PEGAS (SPRING PHYSICS) ---
+            // Variabel ini akan kita hitung di Bagian 3
+            // UBAH bagian variabel fisika di dalam branchesData.forEach:
+        branches.push({
+            element: branchEl,
+            angle: 0,
+            velocity: 0,
+            acceleration: 0,
+            mass: 1.5 + Math.random(),
+            stiffness: 0.08 + (Math.random() * 0.5), // Ditingkatkan (Dulu 0.03, terlalu lembek)
+            damping: 0.85 + (Math.random() * 0.05),
+            windOffset: Math.random() * 1000
+        });
+        });
+
+        // =========================================
+        // BAGIAN 3: MESIN FISIKA ANGIN & PEGAS
+        // =========================================
+        
+        let time = 0; // Waktu untuk generator ombak angin
+
+        // Fungsi pembuat "Noise" buatan (Pseudo-Random)
+        // Gabungan beberapa gelombang Sinus ini menghasilkan tiupan angin 
+        // yang sangat natural, kadang pelan, kadang berhembus kencang tak terduga.
+        function getWindNoise(t, offset) {
+            let noise = Math.sin(t * 0.5 + offset) * 0.5;
+            noise += Math.sin(t * 1.2 + offset * 2) * 0.3;
+            noise += Math.sin(t * 0.2 + offset) * 0.2;
+            return noise; // Hasilnya bervariasi dari -1.0 hingga 1.0
+        }
+
+        
+
+        function animatePhysics() {
+            const currentGlobalWind = (baseWindForce > 0) ? baseWindForce : 0.2;
+
+            // Kecepatan waktu diperlambat (dulu 0.02) agar gerakan angin terasa perlahan & lemas/cozy
+            time += 0.02; 
+
+            branches.forEach(b => {
+                // Hembusan angin halus
+                const randomGust = getWindNoise(time, b.windOffset) * (currentGlobalWind * 1.5);
+                const totalWindPush = (currentGlobalWind * 0.8) + randomGust;
+
+                // Rumus Pegas
+                const springForce = -b.stiffness * b.angle;
+                const totalForce = totalWindPush + springForce;
+
+                b.acceleration = totalForce / b.mass;
+                b.velocity += b.acceleration;
+                b.velocity *= b.damping;
+                b.angle += b.velocity;
+
+                // --- SOLUSI KUNCI ---
+                // Batasi sudut rotasi maksimal antara -5 sampai +10 derajat saja.
+                // Ini mencegah rotasi ekstrem & menghilangkan efek "kain jemuran".
+                b.angle = Math.max(-15, Math.min(25, b.angle));
+
+                b.element.style.transform = `rotate(${b.angle}deg)`;
+            });
+
+            requestAnimationFrame(animatePhysics);
+        }
+
+        // Jalankan mesin fisika!
+        animatePhysics();
+        // --- RUANG UNTUK SCRIPT BAGIAN 2 & 3 ---
+        // (Lanjut ke respons berikutnya)
+    </script>
+</body>
+</html>

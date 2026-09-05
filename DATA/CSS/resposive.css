@@ -1,0 +1,57 @@
+/* ============================================================
+   CSS/responsive.css - Skala Layar & Media Queries
+   ============================================================ */
+
+/* Resolusi Tablet / Laptop Kecil (Maks 850px) */
+@media (max-width: 850px) {
+    .weather-panel {
+        top: 15px;
+        left: 15px;
+        padding: 12px 15px;
+    }
+    #status-box {
+        top: 15px;
+        right: 15px;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .ground {
+        height: 18vh;
+    }
+    #tree-container {
+        bottom: 18vh;
+        transform: scale(0.9);
+        transform-origin: bottom center;
+    }
+}
+
+/* Resolusi Mobile / HP (Maks 480px) */
+@media (max-width: 480px) {
+    .weather-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px; 
+        text-align: center;
+        /* Memenuhi layar atas pada HP */
+        width: calc(100% - 20px); 
+    }
+    #status-box {
+        /* Pindahkan tombol nyala layar ke bawah agar mudah diklik jempol */
+        top: auto;
+        bottom: 2vh;
+        right: 50%;
+        transform: translateX(50%);
+        width: 90%;
+        justify-content: center;
+        flex-direction: row;
+        z-index: 30; 
+    }
+    .ground {
+        height: 22vh;
+    }
+    #tree-container {
+        bottom: 22vh;
+        /* Perkecil pohon 25% agar muat di layar HP */
+        transform: scale(0.75);
+    }
+}

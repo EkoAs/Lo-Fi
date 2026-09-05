@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Tree - JS Random Wind Physics</title>
+    <style>
+        /* =========================================
+           BAGIAN 1: PENGATURAN VIEW & CSS MURNI 
+           (Tidak ada animasi CSS di sini, semua oleh JS)
+           ========================================= */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #87ceeb; /* Langit biru */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 15vh;
+            background-color: #3b7a57;
+            z-index: 10;
+        }
+
+        /* Kontainer Utama Pohon */
+        #tree-container {
+            position: relative;
+            bottom: 15vh;
+            width: 0; 
+            height: 0;
+            z-index: 5;
+        }
+
+        /* 
+           Kita membuat grup "Dahan". 
+           Titik tumpu rotasinya diatur di bawah (bottom center), 
+           sehingga saat JS merotasinya, ia mengayun seperti dahan asli.
+        */
+        .branch {
+            position: absolute;
+            transform-origin: bottom center;
+            /* Transisi dihapus karena pergerakan di-handle per-frame oleh JS (requestAnimationFrame) */
+        }
+
+        /* Bentuk Dasar 1 Pixel Kotak */
+        .pixel {
+            position: absolute;
+            width: 10px;  /* Ukuran kotak */
+            height: 10px;
+        }
+
+        .leaf {
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.15); /* Efek tumpukan 3D */
+        }
+
+        .hint {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+   
+    <!-- Tempat kita merender pohon dari JS -->
+    <div id="tree-container"></div>
+    <div class="ground"></div>
+
+    <!-- Script sementara untuk transisi ke Bagian 2 -->
+    <script id="tree-script">
+        // LOGIKA JAVASCRIPT AKAN DITULIS DI SINI
+        // (Lanjut ke respons berikutnya)
+        // ==========================================
+// BAGIAN 2: LOGIKA GENERATE & FISIKA ANGIN
+// ==========================================
+const container = document.getElementById('tree-container');
+
+// Konfigurasi ukuran dan kerapatan (Overlap = bertumpuk)
+const pixelSize = 10;
+const step = 6; // Jarak gambar pixel. Karena 6 < 10, otomatis rapat & bertumpuk!
+
+// Palet Warna
+const trunkColors = ['#4a3728', '#5c4033', '#3e2723'];
+const leafColors = ['#2d6a4f', '#40916c', '#52b788', '#74c69d', '#1b4332'];
+
+// Fungsi dasar menggambar 1 pixel
+function createPixel(parentElement, x, y, colors, isLeaf = false) {
+    const el = document.createElement('div');
+    el.classList.add('pixel');
+    if (isLeaf) el.classList.add('leaf');
+    
+    el.style.left = x + 'px';
+    el.style.bottom = y + 'px';
+    el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    parentElement.appendChild(el);
+}
+
+// ----------------------------------------------------
+// 1. GENERATE BATANG POHON (TIDAK BERGERAK)
+// ----------------------------------------------------
+for (let y = 0; y <= 160; y += step) {
+    for (let x = -20; x <= 20; x += step) {
+        // Efek gerigi acak di tepi batang
+        if (Math.abs(x) >= 15 && Math.random() > 0.6) continue;
+        createPixel(container, x, y, trunkColors);
+    }
+}
+
+// ----------------------------------------------------
+// 2. GENERATE DAHAN & DAUN (BERGERAK ACAK)
+// ----------------------------------------------------
+// Kita buat kumpulan daun menjadi "Dahan" (Cluster).
+// Nanti JS akan merotasi dahan ini, bukan per-daun.
+const branchesData = [
+    { cx: 0,   cy: 220, r: 100 }, // Dahan Utama (Tengah)
+    { cx: -60, cy: 190, r: 80 },  // Dahan Kiri Bawah
+    { cx: 60,  cy: 190, r: 80 },  // Dahan Kanan Bawah
+    { cx: -50, cy: 280, r: 75 },  // Dahan Kiri Atas
+    { cx: 50,  cy: 280, r: 75 },  // Dahan Kanan Atas
+    { cx: 0,   cy: 330, r: 70 }   // Pucuk
+];
+
+const branches = []; // Menyimpan data animasi dahan
+
+branchesData.forEach(b => {
+    // Buat elemen pembungkus dahan
+    const branchEl = document.createElement('div');
+    branchEl.className = 'branch';
+    
+    // Tentukan titik tumpu (pivot) dahan, taruh sedikit di bawah pusat cluster
+    const pivotX = b.cx;
+    const pivotY = b.cy - (b.r * 0.7); 
+    
+    branchEl.style.left = pivotX + 'px';
+    branchEl.style.bottom = pivotY + 'px';
+    container.appendChild(branchEl);
+
+    // Isi dahan tersebut dengan pixel daun
+    for (let y = -b.r; y <= b.r; y += step) {
+        for (let x = -b.r; x <= b.r; x += step) {
+            // Rumus lingkaran: x^2 + y^2 <= r^2
+            if (x*x + y*y <= b.r * b.r) {
+                // Beri bolong-bolong sedikit agar seperti daun asli (gerigi)
+                if (Math.random() > 0.15) {
+                    // Hitung koordinat daun relatif terhadap titik tumpu (pivot) dahan
+                    const localX = x + (b.cx - pivotX);
+                    const localY = y + (b.cy - pivotY);
+                    createPixel(branchEl, localX, localY, leafColors, true);
+                }
+            }
+        }
+    }
+
+    // Simpan dahan ke dalam array agar bisa dianimasikan oleh JS
+    branches.push({
+        element: branchEl,
+        currentAngle: 0,    // Posisi derajat saat ini
+        targetAngle: 0,     // Posisi derajat tujuan hembusan angin
+        windTimer: Math.random() * 100 // Timer acak agar tidak barengan bergeraknya
+    });
+});
+
+// ----------------------------------------------------
+// 3. FISIKA ANGIN MURNI JAVASCRIPT (RANDOM NOISE)
+// ----------------------------------------------------
+
+// Fungsi LERP (Linear Interpolation) 
+// Untuk memperhalus gerakan dari currentAngle menuju targetAngle
+function lerp(start, end, amt) {
+    return (1 - amt) * start + amt * end;
+}
+
+function animateWind() {
+    branches.forEach(branch => {
+        // Kurangi waktu timer dahan
+        branch.windTimer--;
+
+        // Jika timer habis, JS akan 'melempar dadu' untuk menentukan nasib dahan ini
+        if (branch.windTimer <= 0) {
+            // Peluang 50% dahan ini tertiup angin
+            if (Math.random() > 0.5) {
+                // Tentukan kekuatan angin acak (condong miring ke kanan, misal 2 sampai 6 derajat)
+                branch.targetAngle = (Math.random() * 4) + 2;
+                // Dahan akan menahan posisi miring ini dalam waktu acak (30 - 90 frame)
+                branch.windTimer = 30 + Math.random() * 60; 
+            } else {
+                // Peluang 50% angin berhenti, dahan kembali lurus
+                branch.targetAngle = 0;
+                // Dahan diam lebih lama
+                branch.windTimer = 50 + Math.random() * 100;
+            }
+        }
+
+        // Terapkan LERP: Pindahkan derajat saat ini ke derajat target secara perlahan (0.02)
+        // Angka 0.02 membuat pergerakan sangat lambat dan empuk (seperti daun berat)
+        branch.currentAngle = lerp(branch.currentAngle, branch.targetAngle, 0.02);
+
+        // Putar elemen dahannya
+        branch.element.style.transform = `rotate(${branch.currentAngle}deg)`;
+    });
+
+    // Jalankan per-frame layaknya game engine (60 FPS)
+    requestAnimationFrame(animateWind);
+}
+
+// Mulai hembusan angin!
+animateWind();
+    </script>
+
+</body>
+</html>
