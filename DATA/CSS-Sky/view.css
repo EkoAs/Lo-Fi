@@ -1,0 +1,45 @@
+/* ============================================================
+   CSS-Sky/view.css - Tampilan Dasar Langit & Transisi Cuaca
+   ============================================================ */
+
+#sky-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; /* Paling belakang, di bawah pohon (z-index: 5) */
+    
+    /* Efek transisi super lambat agar perubahan cuaca terasa natural */
+    transition: background 4s ease, opacity 4s ease;
+    overflow: hidden;
+}
+
+/* ----------------------------------------------------
+   TEMA CUACA (Nanti akan diubah-ubah oleh JS-Sky/main.js)
+   ---------------------------------------------------- */
+
+/* 1. Cuaca Cerah / Sepoi-sepoi (Default) */
+.sky-clear {
+    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* 2. Cuaca Sedang / Berawan */
+.sky-cloudy {
+    background: linear-gradient(180deg, #8ba8b5 0%, #b8c6cb 100%);
+}
+
+/* 3. Cuaca Kencang / Mendung Gelap */
+.sky-overcast {
+    background: linear-gradient(180deg, #4b5d67 0%, #768791 100%);
+}
+
+/* 4. Badai / Storm */
+.sky-storm {
+    background: linear-gradient(180deg, #1b262c 0%, #32404b 100%);
+}
+
+/* 5. Sunset / Matahari Terbenam (Bonus jika nanti kamu mau mendeteksi waktu) */
+.sky-sunset {
+    background: linear-gradient(180deg, #ff7e5f 0%, #feb47b 100%);
+}

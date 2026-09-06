@@ -8,7 +8,7 @@
 }
 
 body {
-    background-color: #87ceeb; /* Warna dasar langit siang */
+    /* background-color: #87ceeb; Warna dasar langit siang */
     height: 100vh;
     width: 100vw;
     display: flex;

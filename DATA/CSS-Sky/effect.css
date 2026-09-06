@@ -1,0 +1,72 @@
+/* ============================================================
+   CSS-Sky/effect.css - Animasi Awan Pixel, Hujan & Petir
+   ============================================================ */
+
+/* --- 1. AWAN PIXEL (Box-Shadow Art) --- */
+.pixel-cloud {
+    position: absolute;
+    width: 60px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    /* Menggambar awan pixel dengan bayangan (box-shadow) */
+    box-shadow: 
+        20px -20px 0 0 rgba(255, 255, 255, 0.8),
+        40px -20px 0 0 rgba(255, 255, 255, 0.8),
+        60px -20px 0 0 rgba(255, 255, 255, 0.8),
+        -20px 0 0 0 rgba(255, 255, 255, 0.8),
+        80px 0 0 0 rgba(255, 255, 255, 0.8),
+        10px 20px 0 0 rgba(255, 255, 255, 0.8),
+        30px 20px 0 0 rgba(255, 255, 255, 0.8),
+        50px 20px 0 0 rgba(255, 255, 255, 0.8),
+        70px 20px 0 0 rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    z-index: 2;
+    animation: floatCloud linear infinite;
+    will-change: transform;
+}
+
+@keyframes floatCloud {
+    from { transform: translateX(-150px); }
+    to { transform: translateX(110vw); }
+}
+
+/* --- 2. RINTIK HUJAN --- */
+.raindrop {
+    position: absolute;
+    width: 2px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 3;
+    animation: fallRain linear infinite;
+    will-change: transform;
+}
+
+/* Hujan dibuat sedikit miring ke kanan mengikuti hembusan angin */
+@keyframes fallRain {
+    0% { transform: translateY(-50px) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(110vh) translateX(15vh); opacity: 0; }
+}
+
+/* --- 3. KILATAN PETIR (Flash) --- */
+.lightning-flash {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: white;
+    z-index: 99; /* Tutupi semuanya sejenak */
+    opacity: 0;
+    pointer-events: none; /* Agar tidak mengganggu klik UI */
+}
+
+.flash-active {
+    animation: strike 0.6s ease-out;
+}
+
+@keyframes strike {
+    0% { opacity: 0; }
+    10% { opacity: 0.9; }
+    20% { opacity: 0; }
+    30% { opacity: 0.6; }
+    100% { opacity: 0; }
+}
