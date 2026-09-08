@@ -1,45 +1,35 @@
 /* ============================================================
    CSS-Sky/view.css - Tampilan Dasar Langit & Transisi Cuaca
    ============================================================ */
+/* ============================================================
+   DATA/CSS-Sky/view.css - Tampilan Langit Malam Permanen
+   ============================================================ */
 
 #sky-container {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1; /* Paling belakang, di bawah pohon (z-index: 5) */
-    
-    /* Efek transisi super lambat agar perubahan cuaca terasa natural */
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 1;
     transition: background 4s ease, opacity 4s ease;
     overflow: hidden;
 }
 
-/* ----------------------------------------------------
-   TEMA CUACA (Nanti akan diubah-ubah oleh JS-Sky/main.js)
-   ---------------------------------------------------- */
-
-/* 1. Cuaca Cerah / Sepoi-sepoi (Default) */
+/* 1. Malam Cerah (Bintang Terlihat Jelas) */
 .sky-clear {
-    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+    background: linear-gradient(180deg, #09131a 0%, #112230 60%, #1c3647 100%);
 }
 
-/* 2. Cuaca Sedang / Berawan */
+/* 2. Malam Berawan (Sedikit Gelap) */
 .sky-cloudy {
-    background: linear-gradient(180deg, #8ba8b5 0%, #b8c6cb 100%);
+    background: linear-gradient(180deg, #0d1217 0%, #151e26 100%);
 }
 
-/* 3. Cuaca Kencang / Mendung Gelap */
+/* 3. Malam Mendung / Hujan Sedang */
 .sky-overcast {
-    background: linear-gradient(180deg, #4b5d67 0%, #768791 100%);
+    background: linear-gradient(180deg, #0a0c0e 0%, #111417 100%);
 }
 
-/* 4. Badai / Storm */
+/* 4. Malam Badai (Sangat Gelap) */
 .sky-storm {
-    background: linear-gradient(180deg, #1b262c 0%, #32404b 100%);
-}
-
-/* 5. Sunset / Matahari Terbenam (Bonus jika nanti kamu mau mendeteksi waktu) */
-.sky-sunset {
-    background: linear-gradient(180deg, #ff7e5f 0%, #feb47b 100%);
+    background: linear-gradient(180deg, #020202 0%, #0a0c10 100%);
 }

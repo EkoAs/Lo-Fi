@@ -70,3 +70,17 @@
     30% { opacity: 0.6; }
     100% { opacity: 0; }
 }
+
+/* --- 4. BINTANG KELAP-KELIP --- */
+.star {
+    position: absolute;
+    background-color: #ffffff;
+    border-radius: 50%;
+    z-index: 1; /* Di belakang awan (awan z-index: 2) */
+    animation: twinkle infinite alternate ease-in-out;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.1; transform: scale(0.8); }
+    100% { opacity: 0.9; transform: scale(1.2); box-shadow: 0 0 4px rgba(255,255,255,0.8); }
+}
