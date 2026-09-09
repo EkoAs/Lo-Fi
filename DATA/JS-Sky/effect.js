@@ -1,5 +1,5 @@
 // ============================================================
-// JS-Sky/effect.js - Generator Awan, Hujan & Sistem Petir
+// JS-Sky/effect.js - Generator Awan, Hujan, Petir, Bintang & Aurora
 // ============================================================
 
 const skyContainer = document.getElementById('sky-container');
@@ -14,14 +14,9 @@ window.SkyEngine = {
         const cloud = document.createElement('div');
         cloud.classList.add('pixel-cloud');
         
-        // Posisi tinggi rendah awan secara vertikal
         cloud.style.top = yPos + 'vh';
-        
-        // Awan yang jauh dibuat lebih kecil dan transparan (Parallax Ilusion)
         cloud.style.transform = `scale(${scale})`;
         cloud.style.opacity = opacity;
-        
-        // Kecepatan gerak awan (berdasarkan angin nanti)
         cloud.style.animationDuration = speed + 's';
         
         skyContainer.appendChild(cloud);
@@ -30,19 +25,14 @@ window.SkyEngine = {
 
     // 2. GENERATOR HUJAN
     startRain(dropCount, fallSpeed) {
-        this.stopRain(); // Bersihkan hujan lama jika ada
+        this.stopRain(); 
         
         for(let i = 0; i < dropCount; i++) {
             const drop = document.createElement('div');
             drop.classList.add('raindrop');
             
-            // Sebar hujan secara acak di lebar layar
             drop.style.left = (Math.random() * 120 - 10) + 'vw'; 
-            
-            // Delay acak agar jatuhnya tidak barengan
             drop.style.animationDelay = (Math.random() * 2) + 's';
-            
-            // Kecepatan jatuh
             drop.style.animationDuration = (Math.random() * 0.3 + fallSpeed) + 's';
             
             skyContainer.appendChild(drop);
@@ -65,7 +55,6 @@ window.SkyEngine = {
     triggerLightning() {
         if (!this.lightningEl) return;
         
-        // Trik mereset animasi CSS agar bisa diputar berulang-ulang
         this.lightningEl.classList.remove('flash-active');
         void this.lightningEl.offsetWidth; 
         this.lightningEl.classList.add('flash-active');
@@ -75,9 +64,7 @@ window.SkyEngine = {
     clearClouds() {
         this.activeClouds.forEach(cloud => cloud.remove());
         this.activeClouds = [];
-    }
-
-    // Di dalam window.SkyEngine = { ... }, tambahkan ini:
+    }, // <-- PERBAIKAN: Tanda koma ditambahkan di sini
 
     // 5. GENERATOR BINTANG
     createStars(count) {
@@ -85,41 +72,61 @@ window.SkyEngine = {
             const star = document.createElement('div');
             star.classList.add('star');
             
-            // Ukuran acak (1px - 2.5px)
             const size = (Math.random() * 1.5 + 1) + 'px';
             star.style.width = size;
             star.style.height = size;
             
-            // Posisi acak (Fokus di langit bagian atas/tengah)
             star.style.left = Math.random() * 100 + 'vw';
             star.style.top = Math.random() * 70 + 'vh'; 
             
-            // Kecepatan kelap-kelip acak (1 - 4 detik)
             star.style.animationDuration = (Math.random() * 3 + 1) + 's';
-            // Delay acak agar kelap-kelipnya tidak berbarengan
             star.style.animationDelay = Math.random() * 2 + 's';
             
             skyContainer.appendChild(star);
         }
+    }, // <-- PERBAIKAN: Tanda koma ditambahkan di sini
+
+    // 6. GENERATOR AURORA
+    // 6. GENERATOR AURORA (3 LAYER NATURAL)
+    createAurora() {
+        // Hapus aurora lama jika ada (mencegah penumpukan kalau terpanggil 2x)
+        const oldAurora = document.querySelector('.aurora-container');
+        if (oldAurora) oldAurora.remove();
+
+        const auroraContainer = document.createElement('div');
+        auroraContainer.classList.add('aurora-container');
+        
+        // Layer Utama (Neon Green)
+        const layer1 = document.createElement('div');
+        layer1.classList.add('aurora-ribbon', 'layer-1');
+        
+        // Layer Belakang (Teal / Cyan)
+        const layer2 = document.createElement('div');
+        layer2.classList.add('aurora-ribbon', 'layer-2');
+
+        // Layer Inti (Super Terang di Bawah)
+        const layer3 = document.createElement('div');
+        layer3.classList.add('aurora-ribbon', 'layer-3');
+        
+        auroraContainer.appendChild(layer1);
+        auroraContainer.appendChild(layer2);
+        auroraContainer.appendChild(layer3);
+        
+        skyContainer.appendChild(auroraContainer);
     }
 };
 
-// Inisialisasi elemen petir ke DOM
+
+// 1. Siapkan elemen petir
 window.SkyEngine.initLightning();
 
-// Bikin awan default (Cerah)
-// Parameter: (Speed, Posisi Y, Skala/Besar, Opacity)
-window.SkyEngine.createCloud(40, 10, 0.8, 1);
-window.SkyEngine.createCloud(60, 25, 0.5, 0.6); // Awan jauh (lebih lambat & kecil)
-window.SkyEngine.createCloud(30, 45, 1.2, 0.9); // Awan dekat
-
-// Inisialisasi elemen petir ke DOM
-window.SkyEngine.initLightning();
-
-// Bikin awan default (Malam)
-window.SkyEngine.createCloud(40, 15, 0.8, 0.4); // Opacity awan diturunkan agar lebih gelap di malam hari
+// 2. Bikin awan (Versi Malam hari)
+window.SkyEngine.createCloud(40, 15, 0.8, 0.4); 
 window.SkyEngine.createCloud(60, 25, 0.5, 0.2); 
 window.SkyEngine.createCloud(30, 45, 1.2, 0.5); 
 
-// CETAK 100 BINTANG DI LANGIT!
+// 3. Cetak Bintang
 window.SkyEngine.createStars(100);
+
+// 4. Tampilkan Aurora
+window.SkyEngine.createAurora();
