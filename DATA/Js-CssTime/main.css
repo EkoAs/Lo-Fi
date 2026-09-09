@@ -1,0 +1,59 @@
+/* ============================================================
+   DATA/Js-CssTime/main.css - Jam Real-Time Melayang & Responsif
+   ============================================================ */
+
+#pixel-clock-container {
+    position: absolute;
+    /* Posisikan di sebelah kanan layar, sejajar dengan pohon */
+    bottom: 30%; 
+    right: 8%;   
+    
+    z-index: 10; 
+    text-align: right; /* Teks rata kanan agar jika memanjang, arahnya ke kiri (menuju pohon) */
+    
+    /* Font bergaya retro/coding */
+    font-family: 'Courier New', Courier, monospace; 
+    pointer-events: none; /* Agar tidak memblokir klik/sentuhan pada layar */
+    
+    /* SEMUA KOTAK BACKGROUND & BORDER DIHAPUS */
+}
+
+#pixel-clock {
+    /* RAHASIA RESPONSIP: Ukuran font akan menyesuaikan lebar layar (vw) otomatis */
+    /* clamp(Minimal di HP, Ukuran Dinamis, Maksimal di PC) */
+    font-size: clamp(1.8rem, 5vw, 4rem);
+    
+    font-weight: bold;
+    color: #00ffaa; /* Warna neon green */
+    letter-spacing: 2px;
+    white-space: nowrap; /* Mencegah teks turun ke bawah saat layar sempit */
+    margin-bottom: 5px;
+    
+    /* Efek Glow Neon + Bayangan Gelap agar tetap terbaca meski tertimpa Aurora terang */
+    text-shadow: 
+        0 0 10px rgba(0, 255, 170, 0.8),
+        0 0 20px rgba(0, 255, 170, 0.4),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+#pixel-date {
+    /* Ukuran tanggal juga ikut mengecil otomatis */
+    font-size: clamp(0.7rem, 1.8vw, 1.2rem);
+    color: #ffffff;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    
+    /* Bayangan gelap untuk visibilitas */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9); 
+}
+
+/* Penyesuaian khusus untuk layar HP yang sangat kecil / Portrait */
+@media (max-width: 600px) {
+    #pixel-clock-container {
+        /* Angkat sedikit agar tidak menabrak tanah atau pangkal pohon di HP */
+        bottom: 35%;
+        right: 5%;
+    }
+}
